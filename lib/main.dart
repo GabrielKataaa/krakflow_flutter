@@ -7,33 +7,56 @@ void main() {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  List<Task> tasks = [
-    Task(title: "zrobic pranie ", deadline: "18:00"),
-    Task(title: "wyjsc z psem ", deadline: "22:45"),
-    Task(title: "nakarmic kota ", deadline: "23:00"),
-    Task(title: "umyc naczynia", deadline: "24:00"),
+  final List<Task> tasks = [
+    Task(title: "zrobic pranie", deadline: "18:00", done: true, priority: "średni"),
+    Task(title: "wyjsc z psem", deadline: "22:45", done: false, priority: "wysoki"),
+    Task(title: "nakarmic kota", deadline: "23:00", done: false, priority: "wysoki"),
+    Task(title: "umyc naczynia", deadline: "24:00", done: true, priority: "niski"),
   ];
 
   @override
   Widget build(BuildContext context) {
+    int completedTasks = tasks.where((task) => task.done).length;
+
     return MaterialApp(
       title: 'KrakFlow',
-      home: Center(
-        child: Column(
-          children: [
-            Text(
-              "Dzisiejsze zadania",
-              style: TextStyle(fontSize: 67, fontWeight: FontWeight.bold),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  return TaskCard(title: "${title}",);
-                },
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("KrakFlow"),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Masz dziś ${tasks.length} zadania, wykonano: $completedTasks"),
+              SizedBox(height: 16),
+
+              Text(
+                "Dzisiejsze zadania",
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 16),
+
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+
+                    return TaskCard(
+                      title: task.title,
+                      subtitle: "termin: ${task.deadline} | priorytet: ${task.priority}",
+                      icon: task.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -43,8 +66,15 @@ class MyApp extends StatelessWidget {
 class Task {
   final String title;
   final String deadline;
+  final bool done;
+  final String priority;
 
-  Task({required this.title, required this.deadline});
+  Task({
+    required this.title,
+    required this.deadline,
+    required this.done,
+    required this.priority,
+  });
 }
 
 class TaskCard extends StatelessWidget {
