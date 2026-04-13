@@ -1,37 +1,30 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
 
-
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
-
-
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
       title: 'KrakFlow',
-      home: ekranGlowny()
+      home: ekranGlowny(),
     );
   }
 }
 
-
-class ekranGlowny extends StatefulWidget{
+class ekranGlowny extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    return stanglowny();
-  }
+  State<ekranGlowny> createState() => stanglowny();
 }
+
 class stanglowny extends State<ekranGlowny> {
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     int completedTasks = TaskRepository.tasks.where((task) => task.done).length;
     return Scaffold(
       appBar: AppBar(
@@ -44,22 +37,16 @@ class stanglowny extends State<ekranGlowny> {
           children: [
             Text("Masz dziś ${TaskRepository.tasks.length} zadania, wykonano: $completedTasks"),
             SizedBox(height: 16),
-
             Text(
               "Dzisiejsze zadania",
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
-
             Expanded(
               child: ListView.builder(
                 itemCount: TaskRepository.tasks.length,
                 itemBuilder: (context, index) {
                   final task = TaskRepository.tasks[index];
-
                   return TaskCard(
                     title: task.title,
                     subtitle: "termin: ${task.deadline} | priorytet: ${task.priority}",
@@ -72,11 +59,25 @@ class stanglowny extends State<ekranGlowny> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final Task? newTask = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddTaskScreen(),)
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => AddTaskScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
           );
+
+          if (newTask != null) {
+            setState(() {
+              TaskRepository.tasks.add(newTask);
+            });
+          }
         },
         child: Icon(Icons.add),
       ),
@@ -84,8 +85,12 @@ class stanglowny extends State<ekranGlowny> {
   }
 }
 
-class AddTaskScreen extends StatelessWidget{
-  const AddTaskScreen({super.key});
+class AddTaskScreen extends StatelessWidget {
+  AddTaskScreen({super.key});
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController deadlineController = TextEditingController();
+  final TextEditingController priorityController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +98,50 @@ class AddTaskScreen extends StatelessWidget{
       appBar: AppBar(
         title: Text("Nowe zadanie"),
       ),
-      body: Center(
-        child: Text("Tutaj bedzie formularz dodawania taska"),
-      )
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                labelText: "Tytuł zadania",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: deadlineController,
+              decoration: InputDecoration(
+                labelText: "Termin",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: priorityController,
+              decoration: InputDecoration(
+                labelText: "Priorytet",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                final newTask = Task(
+                  title: titleController.text,
+                  deadline: deadlineController.text,
+                  priority: priorityController.text,
+                  done: false,
+                );
+                Navigator.pop(context, newTask);
+              },
+              child: Text("Zapisz"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
