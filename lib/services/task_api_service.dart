@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
-import 'task_repository.dart';
+import '../models/task.dart';
 
 class TaskApiService {
   static const String baseUrl = "https://dummyjson.com";
+
   static Future<List<Task>> fetchTasks() async {
     final response = await http.get(Uri.parse("$baseUrl/todos"));
 
@@ -18,6 +19,7 @@ class TaskApiService {
         final randomPriority = priorities[random.nextInt(priorities.length)];
 
         return Task(
+          id: todo["id"],
           title: todo["todo"],
           deadline: "brak",
           done: todo["completed"],
