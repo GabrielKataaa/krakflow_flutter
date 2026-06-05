@@ -1,13 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-
 import 'models/task.dart';
 import 'services/task_local_database.dart';
 import 'services/task_sync_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   await Hive.initFlutter();
   await Hive.openBox("tasks");
   runApp(const MyApp());
@@ -208,14 +209,25 @@ class stanglowny extends State<ekranGlowny> {
                           "termin: ${task.deadline} | priorytet: ${task.priority}",
                           done: task.done,
                           onChanged: (value) async {
+                            final isDone = value ?? false;
+                            final wasDone = task.done;
+
                             final updatedTask = Task(
                               id: task.id,
                               title: task.title,
                               deadline: task.deadline,
                               priority: task.priority,
-                              done: value ?? false,
+                              done: isDone,
                             );
+
                             await TaskLocalDatabase.updateTask(updatedTask);
+
+                            if (!wasDone && isDone) {
+                              await NotificationService.showTaskDoneNotification(
+                                task.title,
+                              );
+                            }
+
                             setState(() {
                               tasksFuture = loadTasks();
                             });
